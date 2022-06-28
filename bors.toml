@@ -1,0 +1,10 @@
+#CircleCI using GitHub Status
+status = [
+  "ci/circleci: publish"
+
+]
+
+#CircleCI using GitHub Checks
+status = [
+  "sample"
+]
