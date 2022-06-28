@@ -23,6 +23,25 @@ jobs:
           command: |
             go test -v ./test
 
+  publish:
+    working_directory: ~/repo
+    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+    docker:
+      - image: golang:1.18.3
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: go mod download
+      - run:
+          name: Publish
+          command: |
+            cd apps/app-web/cmd
+            go build -o bin/app-web
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
