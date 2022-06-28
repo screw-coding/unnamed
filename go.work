@@ -8,4 +8,5 @@ use (
 	./pkg/index
 	./pkg/tcp
 	./pkg/tokenizer
+	./test
 )
