@@ -1,0 +1,11 @@
+go 1.18
+
+use (
+	./apps/app-full-text-search-engine
+	./apps/app-web
+	./pkg/file
+	./pkg/http
+	./pkg/index
+	./pkg/tcp
+	./pkg/tokenizer
+)
