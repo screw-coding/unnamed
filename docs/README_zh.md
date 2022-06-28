@@ -2,17 +2,17 @@
 
 
 
-## Description
+## 概述
 
-## Project Structure
+## 项目结构
 
-1. It based on [project-layout](https://github.com/golang-standards/project-layout)
-2. This project use **go work** mode to manage different modules
+1. 本项目结构根据 [project-layout](https://github.com/golang-standards/project-layout)构建
+2. 项目使用go work 工作区模式 管理不同的模块
 
 
-## Project Architecture
+## 项目架构
 
-With Jetbrains products,you can search markdown in settings,then install mermaid extension,then you can see the following graph
+Jetbrains系列产品中,可以在设置中搜索markdown,然后安装mermaid扩展,就可以看到下面的图
 ```mermaid
 flowchart LR
     app-load-balancer-->app-web-server-->app-web
@@ -95,4 +95,3 @@ flowchart LR
     
 
 ```
-
