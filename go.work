@@ -9,5 +9,6 @@ use (
 	./pkg/index
 	./pkg/tcp
 	./pkg/tokenizer
+	./pkg/filter
 	./test
 )
