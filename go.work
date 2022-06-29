@@ -5,6 +5,7 @@ use (
 	./apps/app-web
 	./pkg/file
 	./pkg/http
+	./pkg/yaml
 	./pkg/index
 	./pkg/tcp
 	./pkg/tokenizer
