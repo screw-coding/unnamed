@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/screw-coding/yaml"
 )
 
 type Student struct {
@@ -33,7 +34,7 @@ friends:
 
 func main() {
 	student := Student{}
-	//_ := yaml.UnmarshalFromString(studentYaml, &student)
+	_ := yaml.UnmarshalFromString(studentYaml, &student)
 	fmt.Println(student)
 
 }
