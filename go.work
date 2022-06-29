@@ -8,6 +8,7 @@ use (
 	./pkg/index
 	./pkg/tcp
 	./pkg/tokenizer
+	./pkg/filter
 	./pkg/yaml
 	./test
 	./examples

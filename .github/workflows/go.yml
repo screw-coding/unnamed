@@ -24,4 +24,10 @@ jobs:
           go build -o bin/app-web
 
       - name: Test
-        run: go test -v ./test
+        run: make test-v
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: .testCoverage.txt
