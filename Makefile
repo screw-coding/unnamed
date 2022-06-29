@@ -20,11 +20,11 @@ test-v:
 	CGO_ENABLED=1 go test -v -count=1 -race -covermode=atomic  -coverprofile=testCoverage.txt -coverpkg=./pkg/... ./test
 
 cover-view:
-	go tool cover -func .testCoverage.txt
-	go tool cover -html .testCoverage.txt
+	go tool cover -func testCoverage.txt
+	go tool cover -html testCoverage.txt
 
 check: test lint
-	go tool cover -func .testCoverage.txt
+	go tool cover -func testCoverage.txt
 
 bench:
 	go test -bench=. -run=none -benchmem -benchtime=250000x
