@@ -10,6 +10,7 @@ type Server struct {
 	socketWriteBufferSize int
 	Packer                Packer
 	Listener              net.Listener
+	SessionManager        *SessionManager
 }
 type Option struct {
 	SocketReadBufferSize  int
@@ -21,10 +22,14 @@ func NewServer(opt *Option) *Server {
 	if opt.Packer == nil {
 		opt.Packer = NewDefaultPacker()
 	}
+
+	sessionM := NewSessionManager()
+
 	return &Server{
 		socketReadBufferSize:  opt.SocketReadBufferSize,
 		socketWriteBufferSize: opt.SocketWriteBufferSize,
 		Packer:                opt.Packer,
+		SessionManager:        sessionM,
 	}
 }
 func (s *Server) Serve(addr string) error {
@@ -42,6 +47,8 @@ func (s *Server) Serve(addr string) error {
 		}
 
 		log.Println("A client connected.")
+		session := NewSession(connection, NewDefaultPacker())
+		s.SessionManager.AddSession(session)
 		go s.handleConn(connection)
 	}
 
