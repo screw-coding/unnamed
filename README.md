@@ -1,6 +1,6 @@
 # unnamed
 [![gh-action](https://github.com/screw-coding/unnamed/actions/workflows/go.yml/badge.svg)](https://github.com/screw-coding/unnamed/actions/workflows/go.yml)
-[![codecov](https://codecov.io/gh/screw-coding/unnamed/branch/main/graph/badge.svg?token=002KJ5IV4Z)](https://codecov.io/gh/screw-coding/unnamed)
+[![codecov](https://codecov.io/gh/screw-coding/unnamed/branch/staging/graph/badge.svg)](https://codecov.io/gh/screw-coding/unnamed)
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/46302)
 [![report card](https://goreportcard.com/badge/github.com/screw-coding/unnamed)](https://goreportcard.com/report/github.com/screw-coding/unnamed)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/gojp/goreportcard/blob/master/LICENSE)
