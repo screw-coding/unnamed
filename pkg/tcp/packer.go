@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/binary"
+	"io"
 )
 
 const (
@@ -12,8 +13,8 @@ const (
 )
 
 type Packer interface {
-	Pack(message []byte) []byte
-	Unpack(buf []byte, readerChannel chan []byte) []byte
+	Pack(message *Message) []byte
+	Unpack(reader io.Reader) *Message
 }
 
 func NewDefaultPacker() *DefaultPacker {
@@ -29,35 +30,12 @@ type DefaultPacker struct {
 // @param message
 // @return []byte
 //
-func (d *DefaultPacker) Pack(message []byte) []byte {
-	return append(append([]byte(ConstHeader), intToBytes(len(message))...), message...)
+func (d *DefaultPacker) Pack(message *Message) []byte {
+	return nil
 }
 
-func (d *DefaultPacker) Unpack(buf []byte, readerChannel chan []byte) []byte {
-	length := len(buf)
-	var i int
-	for i = 0; i < length; i++ {
-		if length < i+ConstHeaderLength+ConstDataLength {
-			break
-		}
-
-		if string(buf[i:i+ConstHeaderLength]) == ConstHeader {
-			//it's a packet
-			messageLength := BytesToInt(buf[i+ConstHeaderLength : i+ConstHeaderLength+ConstDataLength])
-			if length < i+ConstHeaderLength+ConstDataLength+messageLength {
-				break
-			}
-			messageBytes := buf[i+ConstHeaderLength+ConstDataLength : i+ConstHeaderLength+ConstDataLength+messageLength]
-			readerChannel <- messageBytes
-			i = i + ConstHeaderLength + ConstDataLength + messageLength - 1
-		}
-
-	}
-	if i == length {
-		// 整个buf读完了,返回个空字节集
-		return make([]byte, 0)
-	}
-	return buf[i:]
+func (d *DefaultPacker) Unpack(conn io.Reader) *Message {
+	return nil
 }
 
 func BytesToInt(b []byte) int {

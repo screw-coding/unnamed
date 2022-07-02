@@ -52,32 +52,17 @@ func (s *Server) Serve(addr string) error {
 		log.Println("A client connected.")
 		session := NewSession(connection, NewDefaultPacker())
 		s.SessionManager.AddSession(session)
-		go s.handleConn(connection)
+		go s.handleConn(session)
 	}
 
 }
 
-func (s *Server) handleConn(connection net.Conn) {
-	tmpBuffer := make([]byte, 0)
-	//一个用户一个readerChannel
-	readerChannel := make(chan []byte, 16)
-	go s.read(readerChannel, connection)
-	buffer := make([]byte, 1024)
-	defaultPacker := NewDefaultPacker()
-	for {
-		n, err := connection.Read(buffer)
-		if err != nil {
-			log.Println(connection.RemoteAddr(), "connection error:", err)
-			return
-		}
-
-		tmpBuffer = defaultPacker.Unpack(append(tmpBuffer, buffer[:n]...), readerChannel)
-		log.Println("read:", tmpBuffer)
-	}
-
+func (s *Server) handleConn(sess *Session) {
+	go sess.readInbound()
+	go sess.writeOutbound()
 }
 
-type HandlerFunc func()
+type HandlerFunc func(rt RouteContext)
 
 //
 // AddRoute
@@ -90,23 +75,26 @@ func (s *Server) AddRoute(msgID uint32, handler HandlerFunc) {
 	s.Router[msgID] = handler
 }
 
-func (s *Server) read(readerChannel chan []byte, conn net.Conn) {
+func (s *Server) readInbound(readerChannel chan []byte, conn net.Conn) {
 	defaultPacker := NewDefaultPacker()
 	for {
 		select {
 		case data := <-readerChannel:
-
 			msg := &Message{}
 			BytesToStruct(data, msg)
 			log.Println("服务端收到数据:", msg.Id, string(msg.Data))
 
 			msg.Data = append(msg.Data, []byte("处理过了")...)
-			_, err := conn.Write(defaultPacker.Pack(structToBytes(msg)))
+			_, err := conn.Write(defaultPacker.Pack(msg))
 			if err != nil {
 				log.Println("返回数据失败:", err)
 			}
 		}
 	}
+}
+
+func (s *Server) writeOutbound(channel chan []byte, connection net.Conn) {
+
 }
 
 func structToBytes(inter interface{}) (result []byte) {

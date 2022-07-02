@@ -10,6 +10,31 @@ type Session struct {
 	conn          net.Conn      //用户实际的socket连接
 	packer        Packer        // 包格式
 	responseQueue chan struct{} // 响应队列
+	requestQueue  chan struct{} // 请求队列
+}
+
+func (s *Session) Send() {
+}
+
+//
+// readInbound
+// @Description: 读取客户端的数据
+// @receiver s
+//
+func (s *Session) readInbound() {
+	for {
+		packer := NewDefaultPacker()
+		reqMsg := packer.Unpack(s.conn)
+		go handleReq(reqMsg)
+	}
+}
+
+func handleReq(msg *Message) {
+
+}
+
+func (s *Session) writeOutbound() {
+
 }
 
 type SessionManager struct {
