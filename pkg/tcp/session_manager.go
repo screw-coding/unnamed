@@ -4,7 +4,6 @@ import (
 	"log"
 	"net"
 	"sync"
-	"time"
 )
 
 type Session struct {
@@ -32,26 +31,25 @@ func (s *Session) Send(rt *RouteContext) (ok bool) {
 func (s *Session) readInbound(router map[uint32]HandlerFunc) {
 	for {
 		packer := NewDefaultPacker()
-		err := s.conn.SetReadDeadline(time.Now().Add(time.Second * 3))
-		if err != nil {
-			log.Printf("session %d set ReadDeadline err:%s", s.id, err)
-		}
+		//err := s.conn.SetReadDeadline(time.Now().Add(time.Second * 3))
+		//if err != nil {
+		//	log.Printf("session %d set ReadDeadline err:%s", s.id, err)
+		//}
 
 		reqMsg, err := packer.Unpack(s.conn)
-		log.Println("receive sth:", reqMsg)
+		log.Printf("receive {%d,%s} from %d:", reqMsg.Id, string(reqMsg.Data), s.id)
 		if err != nil {
 			log.Printf("session unpack err,session id %d,err:%s", s.id, err)
-			break
 		}
 		if reqMsg == nil {
 			continue
 		}
-		s.handleReq(router, reqMsg)
+		go s.handleReq(router, reqMsg)
 	}
 }
 
 func (s *Session) handleReq(router map[uint32]HandlerFunc, msg *Message) {
-	//TODO:中间件处理
+	//TODO:中间件处理,可以链式执行中间件
 	currentRouterFunc := router[msg.Id]
 	rt := &RouteContext{
 		reqMsg:      msg,
@@ -59,16 +57,19 @@ func (s *Session) handleReq(router map[uint32]HandlerFunc, msg *Message) {
 		responseMsg: &Message{},
 	}
 	currentRouterFunc(*rt)
-	//	send := s.Send(rt)
-	log.Printf("send to outbound result:%t", true)
+	send := s.Send(rt)
+	log.Printf("send to outbound result:%t", send)
 }
 
 func (s *Session) writeOutbound() {
 	for {
-		var rt RouteContext
-		select {
-		case rt = <-s.responseQueue:
+
+		rt, ok := <-s.responseQueue
+		if !ok {
+			break
 		}
+
+		log.Println("writeOutbound receive ctx:", rt)
 		bytes := s.packer.Pack(rt.Response())
 		_, _ = s.conn.Write(bytes)
 
@@ -90,9 +91,10 @@ func NewSessionManager() *SessionManager {
 
 func NewSession(conn net.Conn, packer Packer) *Session {
 	return &Session{
-		id:     0,
-		conn:   conn,
-		packer: packer,
+		id:            0,
+		conn:          conn,
+		packer:        packer,
+		responseQueue: make(chan RouteContext, 1024),
 	}
 }
 

@@ -22,16 +22,18 @@ func main() {
 			continue
 		}
 		log.Printf("已经连接上")
-		//input := bufio.NewReader(os.Stdin)
 
 		go func() {
 			packer := NewDefaultPacker()
-			msg, err := packer.Unpack(conn)
-			if err != nil {
-				log.Printf("unpack err:%s", err)
-				return
+			for {
+				msg, err := packer.Unpack(conn)
+				if err != nil {
+					log.Printf("unpack err:%s", err)
+					return
+				}
+				log.Printf("收到服务端返回的消息 <<< | id:(%d) size:(%d) data: %s", msg.Id, len(msg.Data), msg.Data)
 			}
-			log.Printf("rec <<< | id:(%d) size:(%d) data: %s", msg.Id, len(msg.Data), msg.Data)
+
 		}()
 		for {
 			err := play(conn)
@@ -41,25 +43,6 @@ func main() {
 
 			}
 			time.Sleep(time.Second * 3)
-			//readString, err := input.ReadString('\n')
-			//if err != nil {
-			//	return
-			//}
-			//readString = strings.TrimSpace(readString)
-			//
-			//if readString == "quit" {
-			//	log.Println("quit")
-			//	return
-			//}
-			//
-			//if readString == "play" {
-			//	_ = play(conn)
-			//}
-			//
-			//if readString == "pause" {
-			//	_ = pause(conn)
-			//}
-
 		}
 
 	}
@@ -77,21 +60,6 @@ func play(conn net.Conn) (err error) {
 		log.Println("write err:", err)
 		return
 	}
-	log.Printf("发送消息")
-	return
-}
-
-func pause(conn net.Conn) (err error) {
-	packer := NewDefaultPacker()
-	msg := &Message{
-		Id:   PAUSE,
-		Data: []byte("someshshshs"),
-	}
-
-	_, err = conn.Write(packer.Pack(msg))
-	if err != nil {
-		log.Println("write err:", err)
-		return
-	}
+	log.Printf("发送消息成功")
 	return
 }

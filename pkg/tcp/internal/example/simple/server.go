@@ -6,18 +6,22 @@ import (
 	"strings"
 )
 
+const (
+	ConstMsgTypeToLowcase = 1
+)
+
 func main() {
 	opt := &server.Option{
 		SocketWriteBufferSize: 1024,
 		SocketReadBufferSize:  1024,
 	}
 	newServer := server.NewServer(opt)
-	newServer.AddRoute(1, func(rt server.RouteContext) {
+	newServer.AddRoute(ConstMsgTypeToLowcase, func(rt server.RouteContext) {
 		msg := rt.Request()
 		data := msg.Data
-		//一些业务处理
+		//一些业务处理,比如转换大小写
 		newData := strings.ToLower(string(data))
-		rt.Response().Id = 1
+		rt.Response().Id = ConstMsgTypeToLowcase
 		rt.Response().Data = []byte(newData)
 
 	})
