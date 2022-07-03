@@ -1,6 +1,13 @@
 package server
 
 type Message struct {
-	Id   int
+	Id   uint32
 	Data []byte
+}
+
+func NewMessage(id uint32, data []byte) *Message {
+	return &Message{
+		id,
+		data,
+	}
 }

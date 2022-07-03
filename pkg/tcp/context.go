@@ -7,17 +7,17 @@ type Context interface {
 }
 
 type RouteContext struct {
-	session *Session
+	session     *Session
+	reqMsg      *Message
+	responseMsg *Message
 }
 
 func (r RouteContext) Response() *Message {
-	//TODO implement me
-	panic("implement me")
+	return r.responseMsg
 }
 
 func (r RouteContext) Request() *Message {
-	//TODO implement me
-	panic("implement me")
+	return r.reqMsg
 }
 
 func (r RouteContext) Session() *Session {

@@ -1,14 +1,10 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/gob"
 	. "github.com/screw-coding/tcp"
 	"log"
 	"net"
-	"os"
-	"strings"
+	"time"
 )
 
 const (
@@ -17,51 +13,71 @@ const (
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "127.0.0.1:5200")
-	if err != nil {
-		log.Fatal("dial err:", err)
-		return
-	}
-	input := bufio.NewReader(os.Stdin)
-
 	for {
-		readString, err := input.ReadString('\n')
+		log.Printf("开始尝试链接")
+		conn, err := net.Dial("tcp", "127.0.0.1:5200")
 		if err != nil {
-			return
+			log.Printf("dial err:%s", err)
+			time.Sleep(3 * time.Second)
+			continue
 		}
-		readString = strings.TrimSpace(readString)
+		log.Printf("已经连接上")
+		//input := bufio.NewReader(os.Stdin)
 
-		if readString == "quit" {
-			log.Println("quit")
-			return
+		go func() {
+			packer := NewDefaultPacker()
+			msg, err := packer.Unpack(conn)
+			if err != nil {
+				log.Printf("unpack err:%s", err)
+				return
+			}
+			log.Printf("rec <<< | id:(%d) size:(%d) data: %s", msg.Id, len(msg.Data), msg.Data)
+		}()
+		for {
+			err := play(conn)
+			if err != nil {
+				log.Printf("play err:%s", err)
+				conn, _ = net.Dial("tcp", "127.0.0.1:5200")
+
+			}
+			time.Sleep(time.Second * 3)
+			//readString, err := input.ReadString('\n')
+			//if err != nil {
+			//	return
+			//}
+			//readString = strings.TrimSpace(readString)
+			//
+			//if readString == "quit" {
+			//	log.Println("quit")
+			//	return
+			//}
+			//
+			//if readString == "play" {
+			//	_ = play(conn)
+			//}
+			//
+			//if readString == "pause" {
+			//	_ = pause(conn)
+			//}
+
 		}
-
-		if readString == "play" {
-			_ = play(conn)
-		}
-
-		if readString == "pause" {
-			_ = pause(conn)
-		}
-
-		readerChannel := make(chan []byte, 16)
-		go clientRead(readerChannel)
-		go receiveAndUnpack(conn, readerChannel)
 
 	}
 }
 
 func play(conn net.Conn) (err error) {
 	packer := NewDefaultPacker()
-	msg := Message{
+	msg := &Message{
 		Id:   PLAY,
-		Data: []byte("sjsjsjsjss"),
+		Data: []byte("SUEJksueiskUEUUE"),
 	}
-	_, err = conn.Write(packer.Pack(structToBytes(msg)))
+	log.Printf("开始发送消息")
+	_, err = conn.Write(packer.Pack(msg))
 	if err != nil {
 		log.Println("write err:", err)
 		return
 	}
+	log.Printf("发送消息")
 	return
 }
 
@@ -72,45 +88,10 @@ func pause(conn net.Conn) (err error) {
 		Data: []byte("someshshshs"),
 	}
 
-	_, err = conn.Write(packer.Pack(structToBytes(msg)))
+	_, err = conn.Write(packer.Pack(msg))
 	if err != nil {
 		log.Println("write err:", err)
 		return
 	}
 	return
-}
-
-func receiveAndUnpack(conn net.Conn, readerChannel chan []byte) {
-	buffer := make([]byte, 1024)
-	tmpBuffer := make([]byte, 0)
-	packer := NewDefaultPacker()
-	for {
-		size, err := conn.Read(buffer)
-		if err != nil {
-			return
-		}
-		if err != nil {
-			log.Println("read err:", err)
-			return
-		}
-		packer.Unpack(append(tmpBuffer, buffer[:size]...), readerChannel)
-	}
-}
-
-func clientRead(readerChannel chan []byte) {
-	for {
-		select {
-		case data := <-readerChannel:
-			msg := &Message{}
-			BytesToStruct(data, msg)
-			log.Printf("客户端收到数据id: %d,data:%s", msg.Id, string(msg.Data))
-		}
-	}
-}
-
-func structToBytes(inter interface{}) (result []byte) {
-	var buf bytes.Buffer
-	_ = gob.NewEncoder(&buf).Encode(inter)
-	return buf.Bytes()
-
 }

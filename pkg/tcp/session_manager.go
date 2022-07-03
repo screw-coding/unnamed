@@ -1,19 +1,27 @@
 package server
 
 import (
+	"log"
 	"net"
 	"sync"
+	"time"
 )
 
 type Session struct {
-	id            int32         // 连接id,可以使用一个原子整数单调自增的方式生成
-	conn          net.Conn      //用户实际的socket连接
-	packer        Packer        // 包格式
-	responseQueue chan struct{} // 响应队列
-	requestQueue  chan struct{} // 请求队列
+	id            int32             // 连接id,可以使用一个原子整数单调自增的方式生成
+	conn          net.Conn          //用户实际的socket连接
+	packer        Packer            // 包格式
+	responseQueue chan RouteContext // 响应队列
+	requestQueue  chan struct{}     // 请求队列
+	closed        chan struct{}
 }
 
-func (s *Session) Send() {
+func (s *Session) Send(rt *RouteContext) (ok bool) {
+	select {
+	case s.responseQueue <- *rt:
+		return true
+	}
+
 }
 
 //
@@ -21,19 +29,50 @@ func (s *Session) Send() {
 // @Description: 读取客户端的数据
 // @receiver s
 //
-func (s *Session) readInbound() {
+func (s *Session) readInbound(router map[uint32]HandlerFunc) {
 	for {
 		packer := NewDefaultPacker()
-		reqMsg := packer.Unpack(s.conn)
-		go handleReq(reqMsg)
+		err := s.conn.SetReadDeadline(time.Now().Add(time.Second * 3))
+		if err != nil {
+			log.Printf("session %d set ReadDeadline err:%s", s.id, err)
+		}
+
+		reqMsg, err := packer.Unpack(s.conn)
+		log.Println("receive sth:", reqMsg)
+		if err != nil {
+			log.Printf("session unpack err,session id %d,err:%s", s.id, err)
+			break
+		}
+		if reqMsg == nil {
+			continue
+		}
+		s.handleReq(router, reqMsg)
 	}
 }
 
-func handleReq(msg *Message) {
-
+func (s *Session) handleReq(router map[uint32]HandlerFunc, msg *Message) {
+	//TODO:中间件处理
+	currentRouterFunc := router[msg.Id]
+	rt := &RouteContext{
+		reqMsg:      msg,
+		session:     s,
+		responseMsg: &Message{},
+	}
+	currentRouterFunc(*rt)
+	//	send := s.Send(rt)
+	log.Printf("send to outbound result:%t", true)
 }
 
 func (s *Session) writeOutbound() {
+	for {
+		var rt RouteContext
+		select {
+		case rt = <-s.responseQueue:
+		}
+		bytes := s.packer.Pack(rt.Response())
+		_, _ = s.conn.Write(bytes)
+
+	}
 
 }
 

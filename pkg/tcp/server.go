@@ -33,6 +33,7 @@ func NewServer(opt *Option) *Server {
 		socketWriteBufferSize: opt.SocketWriteBufferSize,
 		Packer:                opt.Packer,
 		SessionManager:        sessionM,
+		Router:                make(map[uint32]HandlerFunc),
 	}
 }
 func (s *Server) Serve(addr string) error {
@@ -50,16 +51,20 @@ func (s *Server) Serve(addr string) error {
 		}
 
 		log.Println("A client connected.")
-		session := NewSession(connection, NewDefaultPacker())
-		s.SessionManager.AddSession(session)
-		go s.handleConn(session)
+		go s.handleConn(connection)
 	}
 
 }
 
-func (s *Server) handleConn(sess *Session) {
-	go sess.readInbound()
-	go sess.writeOutbound()
+func (s *Server) handleConn(conn net.Conn) {
+	session := NewSession(conn, NewDefaultPacker())
+	s.SessionManager.AddSession(session)
+	go session.readInbound(s.Router)
+	go session.writeOutbound()
+	select {
+	case <-session.closed:
+		log.Println("session closed")
+	}
 }
 
 type HandlerFunc func(rt RouteContext)
@@ -73,28 +78,6 @@ type HandlerFunc func(rt RouteContext)
 //
 func (s *Server) AddRoute(msgID uint32, handler HandlerFunc) {
 	s.Router[msgID] = handler
-}
-
-func (s *Server) readInbound(readerChannel chan []byte, conn net.Conn) {
-	defaultPacker := NewDefaultPacker()
-	for {
-		select {
-		case data := <-readerChannel:
-			msg := &Message{}
-			BytesToStruct(data, msg)
-			log.Println("服务端收到数据:", msg.Id, string(msg.Data))
-
-			msg.Data = append(msg.Data, []byte("处理过了")...)
-			_, err := conn.Write(defaultPacker.Pack(msg))
-			if err != nil {
-				log.Println("返回数据失败:", err)
-			}
-		}
-	}
-}
-
-func (s *Server) writeOutbound(channel chan []byte, connection net.Conn) {
-
 }
 
 func structToBytes(inter interface{}) (result []byte) {
