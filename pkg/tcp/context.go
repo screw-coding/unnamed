@@ -21,7 +21,6 @@ func (r RouteContext) Request() *Message {
 }
 
 func (r RouteContext) Session() *Session {
-
 	return r.session
 }
 

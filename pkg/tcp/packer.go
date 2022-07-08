@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -57,20 +56,4 @@ func (d *DefaultPacker) Unpack(reader io.Reader) (*Message, error) {
 	}
 
 	return NewMessage(id, data), nil
-}
-
-func BytesToInt(b []byte) int {
-	bytesBuffer := bytes.NewBuffer(b)
-
-	var x int32
-	_ = binary.Read(bytesBuffer, binary.BigEndian, &x)
-	return int(x)
-}
-
-func intToBytes(i int) []byte {
-	x := int32(i)
-	buffer := bytes.NewBuffer([]byte{})
-	_ = binary.Write(buffer, binary.BigEndian, x)
-	return buffer.Bytes()
-
 }

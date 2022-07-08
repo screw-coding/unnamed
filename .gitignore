@@ -16,5 +16,5 @@
 .idea/
 
 testCoverage.txt
-
+coverprofile.cov
 tmp
