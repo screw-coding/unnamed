@@ -10,6 +10,8 @@
 
 ## Description
 
+How does Internet application work? Let's realize this set of toys by ourselves!
+
 ## Project Structure
 
 1. It based on [project-layout](https://github.com/golang-standards/project-layout)
@@ -102,3 +104,7 @@ flowchart LR
 
 ```
 
+## DOCUMENTATION
+
+* [Help me to choose a project name!](docs/issue-6-which-name.md)
+* [How to run unit test?](docs/issue-14-go-unit-test.md)

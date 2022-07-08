@@ -1,8 +1,6 @@
 package server
 
 import (
-	"bytes"
-	"encoding/gob"
 	"log"
 	"net"
 )
@@ -78,17 +76,4 @@ type HandlerFunc func(rt RouteContext)
 //
 func (s *Server) AddRoute(msgID uint32, handler HandlerFunc) {
 	s.Router[msgID] = handler
-}
-
-func structToBytes(inter interface{}) (result []byte) {
-	var buf bytes.Buffer
-	_ = gob.NewEncoder(&buf).Encode(inter)
-	return buf.Bytes()
-
-}
-
-func BytesToStruct(data []byte, inter interface{}) {
-	buf := bytes.NewBuffer(data)
-	_ = gob.NewDecoder(buf).Decode(inter)
-	return
 }
